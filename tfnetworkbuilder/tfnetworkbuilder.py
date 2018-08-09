@@ -4,26 +4,32 @@ import csv,sys, os, pandas, requests, pickle, argparse
 base="http://amp.pharm.mssm.edu/Harmonizome/api/1.0/gene_set/"
 parser = argparse.ArgumentParser(description='Get a list of nodes from the user and build a TF-network from the node list.')
 parser.add_argument("nodes", help="Full path to your file name",type=argparse.FileType('r'))
-parser.add_argument('-s', action="store_true", default=False)
+parser.add_argument("TFs", help="Full path to your file name",type=argparse.FileType('r'))
+parser.add_argument('-s', help="Save pickled dictionaries", action="store_true", default=False)
 
 args = parser.parse_args()
 
 
-
-filename=args.nodes
-
-def node_parser(filename):
-    file = args.nodes
+def gene_parser():
+    filename = args.nodes
     reader = csv.reader(filename)
-    nodes =[row for row in reader]
-    nodes = [item for sublist in nodes for item in sublist]
-    file.close()
-    return nodes
+    genes =[row for row in reader]
+    genes = [item for sublist in genes for item in sublist]
+    filename.close()
+    return set(genes)
 
-nodes=node_parser(filename);
+def TF_parser():
+    filename=args.TFs;
+    TFs=pandas.read_csv(filename)
+    filename.close()
+    return set(TFs["HGNC symbol"].tolist())
 
-print(nodes)
 
+def nodes_parser():
+    return list(gene_parser().intersection(TF_parser()));
+
+nodes=nodes_parser()
+print("Your gene names that correspond to human TFs according to  PMID: 29425488 are: \n"+ str(nodes))
 
 def main():
     python_network_builder(nodes);
@@ -297,10 +303,10 @@ def merger(python_file_name,r_file_name):
 
 def python_network_builder(nodes):
     edges=edge_builder(master_dict_builder(nodes))
-    with open("python_network.csv", "w") as f:
+    with open("../results/python_network.csv", "w") as f:
         writer = csv.writer(f)
         writer.writerows(edges)
-    return "File is called python_network_csv"
+    print( "Success! Your network is now in the results folder.")
 def loader():
     with open("super.encode", 'rb') as f:
         encode = pickle.load(f )

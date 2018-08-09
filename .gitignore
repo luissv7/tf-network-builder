@@ -3,8 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#Ignore resulting network
+results/python_network.csv
+
 #Ignore emacs autosaves
 *~
+
+#Ignore all the dictionaries
+*super*
 
 
 # C extensions
